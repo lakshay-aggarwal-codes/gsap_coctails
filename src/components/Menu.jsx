@@ -1,13 +1,39 @@
-import {allCocktails} from "../../constants/index.js";
-import {useRef, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useGSAP} from "@gsap/react";
 import {gsap} from "gsap";
+import {fetchCocktails} from "../services/api.js";
 
 const Menu = () => {
     const contentRef = useRef();
+    const [cocktails, setCocktails] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        fetchCocktails()
+            .then((data) => {
+                if (!isMounted) return;
+                // Only entries with an image belong in this carousel —
+                // reconstructs the original allCocktails set regardless of
+                // category/tier values.
+                setCocktails(data.filter((c) => c.image));
+            })
+            .catch((err) => {
+                if (isMounted) setError(err.message);
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const totalCocktails = cocktails.length;
 
     useGSAP(() => {
+        if (totalCocktails === 0) return;
+
         gsap.fromTo("#title", {opacity: 0}, {opacity: 1, duration: 1});
         gsap.fromTo(".cocktail img", {opacity: 0, xPercent: -100}, {
             xPercent: 0,
@@ -27,16 +53,33 @@ const Menu = () => {
             yPercent: 0,
             ease: "power1.inOut"
         });
-    }, [currentIndex]);
+    }, [currentIndex, totalCocktails]);
 
-    const totalCocktails = allCocktails.length;
     const goToSlide = (index) => {
         const newIndex = (totalCocktails + index) % totalCocktails;
         setCurrentIndex(newIndex);
     }
 
     const getCocktailAt = (indexOffset) => {
-        return allCocktails[(totalCocktails + currentIndex + indexOffset) % totalCocktails]
+        return cocktails[(totalCocktails + currentIndex + indexOffset) % totalCocktails]
+    }
+
+    if (error) {
+        return (
+            <section id='menu' aria-labelledby='menu-heading'>
+                <h2 id='menu-heading' className='sr-only'>Cocktail Menu</h2>
+                <p className='text-center text-white'>Unable to load menu: {error}</p>
+            </section>
+        );
+    }
+
+    if (totalCocktails === 0) {
+        return (
+            <section id='menu' aria-labelledby='menu-heading'>
+                <h2 id='menu-heading' className='sr-only'>Cocktail Menu</h2>
+                <p className='text-center text-white'>Loading menu…</p>
+            </section>
+        );
     }
 
     const currCocktail = getCocktailAt(0);
@@ -53,11 +96,11 @@ const Menu = () => {
             </h2>
 
             <nav className='cocktail-tabs' aria-label='Cocktail Navigation'>
-                {allCocktails.map((cocktail, index) => {
+                {cocktails.map((cocktail, index) => {
                     const isActive = index === currentIndex;
                     return (
                         <button
-                            key={cocktail.id}
+                            key={cocktail._id}
                             className={`${isActive ? 'text-white border-white' : 'text-white/50 border-white/50'}`}
                             onClick={() => goToSlide(index)}
                         >

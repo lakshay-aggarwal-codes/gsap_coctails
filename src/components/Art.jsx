@@ -2,7 +2,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useMediaQuery } from 'react-responsive';
 import { useGSAP } from '@gsap/react';
-import { featureLists, goodLists } from '../../constants/index.js';
+import { featureLists, goodLists } from '../constants/index.js';
 
 gsap.registerPlugin(ScrollTrigger);
 

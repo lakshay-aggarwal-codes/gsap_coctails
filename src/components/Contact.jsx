@@ -1,8 +1,35 @@
-import {openingHours, socials} from "../../constants/index.js";
+import {openingHours, socials} from "../constants/index.js";
+import {useState} from "react";
 import {useGSAP} from "@gsap/react";
 import {SplitText} from "gsap/all";
 import gsap from "gsap";
+import {sendContactMessage} from "../services/api.js";
 const Contact = () => {
+    const [formData, setFormData] = useState({name: "", email: "", message: ""});
+    // status: 'idle' | 'submitting' | 'success' | 'error'
+    const [status, setStatus] = useState("idle");
+    const [errorMessage, setErrorMessage] = useState("");
+
+    const handleChange = (e) => {
+        const {name, value} = e.target;
+        setFormData((prev) => ({...prev, [name]: value}));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setStatus("submitting");
+        setErrorMessage("");
+
+        try {
+            await sendContactMessage(formData);
+            setStatus("success");
+            setFormData({name: "", email: "", message: ""});
+        } catch (err) {
+            setStatus("error");
+            setErrorMessage(err.message);
+        }
+    };
+
     useGSAP(()=>{
         const titleSplit = SplitText.create("#contact h2",{
             type:'words'
@@ -72,6 +99,55 @@ const Contact = () => {
                             </a>
                         ))}
                     </div>
+                </div>
+
+                <div>
+                    <h3>Send Us a Message</h3>
+                    <form onSubmit={handleSubmit} className='space-y-4 max-w-md'>
+                        <input
+                            type='text'
+                            name='name'
+                            required
+                            value={formData.name}
+                            onChange={handleChange}
+                            placeholder='Your name'
+                            aria-label='Your name'
+                            className='w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-yellow'
+                        />
+                        <input
+                            type='email'
+                            name='email'
+                            required
+                            value={formData.email}
+                            onChange={handleChange}
+                            placeholder='Your email'
+                            aria-label='Your email'
+                            className='w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-yellow'
+                        />
+                        <textarea
+                            name='message'
+                            rows='4'
+                            required
+                            value={formData.message}
+                            onChange={handleChange}
+                            placeholder='How can we help?'
+                            aria-label='Your message'
+                            className='w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-yellow'
+                        />
+                        <button
+                            type='submit'
+                            disabled={status === "submitting"}
+                            className='rounded-full bg-yellow text-black font-semibold px-6 py-3 hover:opacity-90 transition disabled:opacity-50'
+                        >
+                            {status === "submitting" ? "Sending..." : "Send Message"}
+                        </button>
+                        {status === "success" && (
+                            <p className='text-green-400'>Thanks! We'll get back to you soon.</p>
+                        )}
+                        {status === "error" && (
+                            <p className='text-red-400'>Something went wrong: {errorMessage}</p>
+                        )}
+                    </form>
                 </div>
             </div>
         </footer>
