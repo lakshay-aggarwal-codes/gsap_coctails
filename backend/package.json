@@ -1,0 +1,26 @@
+{
+  "name": "gsap-cocktails-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "REST API backend for the GSAP Cocktails app",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev":"nodemon src/server.js",
+    "seed": "node src/seed/cocktails.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.2",
+    "express-rate-limit": "^8.6.2",
+    "mongoose": "^8.24.4"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
