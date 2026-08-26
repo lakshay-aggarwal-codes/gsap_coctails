@@ -6,15 +6,16 @@ import {
     updateCocktail,
     deleteCocktail,
 } from "../controllers/cocktail.controller.js";
+import protect from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.route("/").get(getCocktails).post(createCocktail);
+router.route("/").get(getCocktails).post(protect, createCocktail);
 
 router
     .route("/:id")
     .get(getCocktailById)
-    .put(updateCocktail)
-    .delete(deleteCocktail);
+    .put(protect, updateCocktail)
+    .delete(protect, deleteCocktail);
 
 export default router;

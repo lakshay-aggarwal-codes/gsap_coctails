@@ -6,11 +6,12 @@ import {
     deleteContactMessage,
 } from "../controllers/contact.controller.js";
 import formSubmissionLimiter from "../middleware/rateLimiter.middleware.js";
+import protect from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.route("/").get(getContactMessages).post(formSubmissionLimiter, createContactMessage);
+router.route("/").get(protect, getContactMessages).post(formSubmissionLimiter, createContactMessage);
 
-router.route("/:id").get(getContactMessageById).delete(deleteContactMessage);
+router.route("/:id").get(protect, getContactMessageById).delete(protect, deleteContactMessage);
 
-export default router;
+export default router;  

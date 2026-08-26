@@ -7,15 +7,16 @@ import {
     deleteReservation,
 } from "../controllers/reservation.controller.js";
 import formSubmissionLimiter from "../middleware/rateLimiter.middleware.js";
+import protect from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.route("/").get(getReservations).post(formSubmissionLimiter, createReservation);
+router.route("/").get(protect, getReservations).post(formSubmissionLimiter, createReservation);
 
 router
     .route("/:id")
-    .get(getReservationById)
-    .put(updateReservation)
-    .delete(deleteReservation);
+    .get(protect, getReservationById)
+    .put(protect, updateReservation)
+    .delete(protect, deleteReservation);
 
 export default router;
