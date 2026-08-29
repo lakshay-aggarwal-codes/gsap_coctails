@@ -49,7 +49,9 @@ export async function loginAdmin(credentials) {
 }
 
 function getAuthHeaders(token) {
-    return {Authorization: `Bearer ${token}`};
+    return token
+        ? { Authorization: `Bearer ${token}` }
+        : {};
 }
 
 async function handleResponseWithMeta(res) {
@@ -85,16 +87,62 @@ export async function updateReservationStatus({token, id, status}) {
     return handleResponse(res);
 }
 
-export async function fetchContactMessagesAdmin({ token, page = 1, limit = 20 }) {
-    const params = new URLSearchParams({ page, limit });
+export async function fetchContactMessagesAdmin({token, page = 1, limit = 20}) {
+    const params = new URLSearchParams({page, limit});
     const res = await fetch(`${API_BASE_URL}/contact?${params.toString()}`, {
         headers: getAuthHeaders(token),
     });
     return handleResponseWithMeta(res);
 }
 
-export async function deleteContactMessage({ token, id }) {
+export async function deleteContactMessage({token, id}) {
     const res = await fetch(`${API_BASE_URL}/contact/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function fetchCocktailsAdmin({
+                                              token,
+                                              page = 1,
+                                              limit = 20,
+                                          }) {
+    const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+    });
+
+    const res = await fetch(
+        `${API_BASE_URL}/cocktails?${params.toString()}`,
+        {
+            headers: getAuthHeaders(token),
+        }
+    );
+
+    return handleResponseWithMeta(res);
+}
+
+export async function createCocktail({token, cocktail}) {
+    const res = await fetch(`${API_BASE_URL}/cocktails`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", ...getAuthHeaders(token)},
+        body: JSON.stringify(cocktail),
+    });
+    return handleResponse(res);
+}
+
+export async function updateCocktail({token, id, cocktail}) {
+    const res = await fetch(`${API_BASE_URL}/cocktails/${id}`, {
+        method: "PUT",
+        headers: {"Content-Type": "application/json", ...getAuthHeaders(token)},
+        body: JSON.stringify(cocktail),
+    });
+    return handleResponse(res);
+}
+
+export async function deleteCocktail({token, id}) {
+    const res = await fetch(`${API_BASE_URL}/cocktails/${id}`, {
         method: "DELETE",
         headers: getAuthHeaders(token),
     });

@@ -23,6 +23,7 @@ const cocktailSchema = new mongoose.Schema(
         },
         detail: {
             type: String,
+            min: 0,
             trim: true,
         },
         price: {
