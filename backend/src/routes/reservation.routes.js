@@ -10,18 +10,19 @@ import formSubmissionLimiter from "../middleware/rateLimiter.middleware.js";
 import protect from "../middleware/auth.middleware.js";
 import validate from "../middleware/validate.middleware.js";
 import {paginationQuerySchema} from "../validators/pagination.validators.js";
+import {createReservationSchema, updateReservationSchema} from "../validators/reservation.validators.js";
 
 const router = express.Router();
 
 router
     .route("/:id")
     .get(protect, getReservationById)
-    .put(protect, updateReservation)
+    .put(protect, validate(updateReservationSchema), updateReservation)
     .delete(protect, deleteReservation);
 
 router
     .route("/")
     .get(protect, validate(paginationQuerySchema, "query"), getReservations)
-    .post(formSubmissionLimiter, createReservation);
+    .post(formSubmissionLimiter, validate(createReservationSchema), createReservation);
 
 export default router;
