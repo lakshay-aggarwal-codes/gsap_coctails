@@ -1,5 +1,6 @@
 import Reservation from "../models/Reservation.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import {buildPaginationMeta} from "../utils/pagination.js";
  
 const createReservation = asyncHandler(async (req, res) => {
     const reservation = await Reservation.create(req.body);
@@ -9,14 +10,20 @@ const createReservation = asyncHandler(async (req, res) => {
         data: reservation,
     });
 });
- 
+
 const getReservations = asyncHandler(async (req, res) => {
-    const reservations = await Reservation.find().sort({ createdAt: -1 });
+    const { page, limit } = req.query;
+    const skip = (page - 1) * limit;
+
+    const [reservations, total] = await Promise.all([
+        Reservation.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+        Reservation.countDocuments(),
+    ]);
 
     res.status(200).json({
         success: true,
-        count: reservations.length,
         data: reservations,
+        pagination: buildPaginationMeta({ page, limit, total }),
     });
 });
  

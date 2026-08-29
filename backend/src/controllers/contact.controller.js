@@ -1,4 +1,5 @@
 import Contact from "../models/Contact.js";
+import {buildPaginationMeta} from "../utils/pagination.js";
 import asyncHandler from "../utils/asyncHandler.js";
  
 const createContactMessage = asyncHandler(async (req, res) => {
@@ -9,14 +10,20 @@ const createContactMessage = asyncHandler(async (req, res) => {
         data: message,
     });
 });
- 
+
 const getContactMessages = asyncHandler(async (req, res) => {
-    const messages = await Contact.find().sort({ createdAt: -1 });
+    const { page, limit } = req.query;
+    const skip = (page - 1) * limit;
+
+    const [messages, total] = await Promise.all([
+        Contact.find().sort({ createdAt: -1 }).skip(skip).limit(limit),
+        Contact.countDocuments(),
+    ]);
 
     res.status(200).json({
         success: true,
-        count: messages.length,
         data: messages,
+        pagination: buildPaginationMeta({ page, limit, total }),
     });
 });
  
