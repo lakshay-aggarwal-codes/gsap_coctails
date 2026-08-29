@@ -1,3 +1,4 @@
+import Reservation from "../models/Reservation.js";
 import AppError from "../utils/AppError.js";
 import RESERVATION_RULES from "../config/reservationRules.js";
 
@@ -32,4 +33,30 @@ const validateTimeSlot = (time) => {
     }
 };
 
-export { validateTimeSlot };
+const checkAvailability = async ({ date, time, numberOfGuests, excludeReservationId }) => {
+    const filter = {
+        date,
+        time,
+        status: { $ne: "cancelled" },
+    };
+
+    if (excludeReservationId) {
+        filter._id = { $ne: excludeReservationId };
+    }
+
+    const existingReservations = await Reservation.find(filter).select("numberOfGuests");
+    const bookedGuests = existingReservations.reduce((sum, r) => sum + r.numberOfGuests, 0);
+    const remaining = RESERVATION_RULES.MAX_GUESTS_PER_SLOT - bookedGuests;
+
+    if (numberOfGuests > remaining) {
+        if (remaining <= 0) {
+            throw new AppError(`Sorry, we're fully booked for ${time} on ${date}. Please choose another time.`, 409);
+        }
+        throw new AppError(
+            `Only ${remaining} seat${remaining === 1 ? "" : "s"} left for ${time} on ${date} — please reduce your party size or choose another time.`,
+            409
+        );
+    }
+};
+
+export { validateTimeSlot, checkAvailability };

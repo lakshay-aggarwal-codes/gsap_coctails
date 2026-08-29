@@ -1,10 +1,13 @@
 import Reservation from "../models/Reservation.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import {buildPaginationMeta} from "../utils/pagination.js";
-import {validateTimeSlot} from "../services/reservation.service.js";
+import {validateTimeSlot,checkAvailability } from "../services/reservation.service.js";
 
 const createReservation = asyncHandler(async (req, res) => {
-    validateTimeSlot(req.body.time);
+    const { date, time, numberOfGuests } = req.body;
+
+    validateTimeSlot(time);
+    await checkAvailability({ date, time, numberOfGuests });
 
     const reservation = await Reservation.create(req.body);
 
@@ -13,6 +16,7 @@ const createReservation = asyncHandler(async (req, res) => {
         data: reservation,
     });
 });
+
 
 const getReservations = asyncHandler(async (req, res) => {
     const {page, limit} = req.query;
@@ -43,11 +47,25 @@ const getReservationById = asyncHandler(async (req, res) => {
         data: reservation,
     });
 });
-
 const updateReservation = asyncHandler(async (req, res) => {
-    if (req.body.time !== undefined) {
-        validateTimeSlot(req.body.time);
+    const isRebooking = ["date", "time", "numberOfGuests"].some((field) => req.body[field] !== undefined);
+
+    if (isRebooking) {
+        const existing = await Reservation.findById(req.params.id);
+
+        if (!existing) {
+            res.status(404);
+            throw new Error("Reservation not found");
+        }
+
+        const date = req.body.date ?? existing.date;
+        const time = req.body.time ?? existing.time;
+        const numberOfGuests = req.body.numberOfGuests ?? existing.numberOfGuests;
+
+        validateTimeSlot(time);
+        await checkAvailability({ date, time, numberOfGuests, excludeReservationId: req.params.id });
     }
+
     const reservation = await Reservation.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
         runValidators: true,
@@ -63,6 +81,7 @@ const updateReservation = asyncHandler(async (req, res) => {
         data: reservation,
     });
 });
+
 
 const deleteReservation = asyncHandler(async (req, res) => {
     const reservation = await Reservation.findByIdAndDelete(req.params.id);
