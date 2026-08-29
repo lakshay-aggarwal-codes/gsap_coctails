@@ -1,28 +1,18 @@
 import React from "react";
-import {gsap} from "gsap/gsap-core";
-import {ScrollTrigger, SplitText} from "gsap/all";
-import NavBar from "./components/NavBar.jsx";
-import Hero from "./components/Hero.jsx";
-import Cocktails from "./components/Cocktails.jsx";
-import About from "./components/About.jsx";
-import Art from "./components/Art.jsx";
-import Menu from "./components/Menu.jsx";
-import Reservation from "./components/Reservation.jsx";
-import Contact from "./components/Contact.jsx";
+import { gsap } from "gsap/gsap-core";
+import { ScrollTrigger, SplitText } from "gsap/all";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./pages/Home.jsx";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
+
 const App = () => {
     return (
-        <main>
-            <NavBar/>
-            <Hero/>
-            <Cocktails/>
-            <About/>
-            <Art />
-            <Menu />
-            <Reservation/>
-            <Contact/>
-        </main>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<Home />} />
+            </Routes>
+        </BrowserRouter>
     )
 }
 export default App;
