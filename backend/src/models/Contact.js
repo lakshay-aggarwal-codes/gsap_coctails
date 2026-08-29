@@ -22,7 +22,7 @@ const contactSchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
-
+contactSchema.index({ createdAt: -1 });
 const Contact = mongoose.model("Contact", contactSchema);
 
 export default Contact;

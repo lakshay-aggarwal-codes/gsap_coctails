@@ -49,6 +49,9 @@ const cocktailSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+cocktailSchema.index({ category: 1 });
+cocktailSchema.index({ createdAt: -1 });
+
 const Cocktail = mongoose.model("Cocktail", cocktailSchema);
 
 export default Cocktail;
