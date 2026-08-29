@@ -84,3 +84,19 @@ export async function updateReservationStatus({token, id, status}) {
     });
     return handleResponse(res);
 }
+
+export async function fetchContactMessagesAdmin({ token, page = 1, limit = 20 }) {
+    const params = new URLSearchParams({ page, limit });
+    const res = await fetch(`${API_BASE_URL}/contact?${params.toString()}`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponseWithMeta(res);
+}
+
+export async function deleteContactMessage({ token, id }) {
+    const res = await fetch(`${API_BASE_URL}/contact/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}

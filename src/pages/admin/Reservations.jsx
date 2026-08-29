@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
-import { Navigate } from "react-router-dom";
 import { fetchReservationsAdmin, updateReservationStatus } from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
+import useAuthGuard from "../../hooks/useAuthGuard.js";
 
 const STATUS_OPTIONS = ["pending", "confirmed", "cancelled"];
 const PAGE_SIZE = 10;
@@ -15,7 +15,7 @@ const statusClass = {
 
 const Reservations = () => {
     const [page, setPage] = useState(1);
-    const { token, logout } = useAuth();
+    const { token } = useAuth();
     const queryClient = useQueryClient();
 
     const { data, error, isLoading } = useQuery({
@@ -29,10 +29,7 @@ const Reservations = () => {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["reservations"] }),
     });
 
-    if (error?.status === 401) {
-        logout();
-        return <Navigate to="/admin/login" replace />;
-    }
+    useAuthGuard(error);
 
     const reservations = data?.data ?? [];
     const pagination = data?.pagination;
