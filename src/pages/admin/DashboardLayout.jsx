@@ -22,7 +22,7 @@ const DashboardLayout = () => {
                 <div className="container mx-auto flex items-center justify-between px-5 py-4">
                     <p className="font-modern-negra text-2xl text-yellow">Velvet Pour</p>
 
-                    <nav className="flex gap-1">
+                    <nav className="admin-nav flex gap-1">
                         <NavLink to="/admin" end className={navLinkClass}>Overview</NavLink>
                         <NavLink to="/admin/reservations" className={navLinkClass}>Reservations</NavLink>
                         <NavLink to="/admin/contact" className={navLinkClass}>Messages</NavLink>

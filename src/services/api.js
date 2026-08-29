@@ -5,7 +5,9 @@ async function handleResponse(res) {
 
     if (!res.ok || !body || body.success === false) {
         const message = body?.message || `Request failed with status ${res.status}`;
-        throw new Error(message);
+        const error = new Error(message);
+        error.status = res.status;
+        throw error;
     }
 
     return body.data;
@@ -22,7 +24,7 @@ export async function fetchCocktails(params = {}) {
 export async function createReservation(reservation) {
     const res = await fetch(`${API_BASE_URL}/reservations`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(reservation),
     });
     return handleResponse(res);
@@ -31,7 +33,7 @@ export async function createReservation(reservation) {
 export async function sendContactMessage(contactMessage) {
     const res = await fetch(`${API_BASE_URL}/contact`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(contactMessage),
     });
     return handleResponse(res);
@@ -40,8 +42,45 @@ export async function sendContactMessage(contactMessage) {
 export async function loginAdmin(credentials) {
     const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(credentials),
+    });
+    return handleResponse(res);
+}
+
+function getAuthHeaders(token) {
+    return {Authorization: `Bearer ${token}`};
+}
+
+async function handleResponseWithMeta(res) {
+    const body = await res.json().catch(() => null);
+
+    if (!res.ok || !body || body.success === false) {
+        const message = body?.message || `Request failed with status ${res.status}`;
+        const error = new Error(message);
+        error.status = res.status;
+        throw error;
+    }
+
+    return {data: body.data, pagination: body.pagination};
+}
+
+export async function fetchReservationsAdmin({token, page = 1, limit = 20}) {
+    const params = new URLSearchParams({page, limit});
+    const res = await fetch(`${API_BASE_URL}/reservations?${params.toString()}`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponseWithMeta(res);
+}
+
+export async function updateReservationStatus({token, id, status}) {
+    const res = await fetch(`${API_BASE_URL}/reservations/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            ...getAuthHeaders(token),
+        },
+        body: JSON.stringify({status}),
     });
     return handleResponse(res);
 }
