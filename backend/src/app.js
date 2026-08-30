@@ -10,7 +10,7 @@ import authRoutes from "./routes/auth.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
-
+import favoriteRoutes from "./routes/favorite.routes.js";
 
 const app = express();
 
@@ -29,6 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/cocktails", cocktailRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/favorites", favoriteRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use(
     "/api/docs",

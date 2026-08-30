@@ -1,12 +1,6 @@
-import jwt from "jsonwebtoken";
 import Admin from "../models/Admin.js";
 import asyncHandler from "../utils/asyncHandler.js";
-
-const generateToken = (adminId) => {
-    return jwt.sign({ id: adminId }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN || "7d",
-    });
-};
+import generateToken from "../utils/generateToken.js";
 
 const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -15,9 +9,9 @@ const login = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error("Email and password are required");
     }
- 
+
     const admin = await Admin.findOne({ email }).select("+password");
- 
+
     if (!admin || !(await admin.matchPassword(password))) {
         res.status(401);
         throw new Error("Invalid email or password");
@@ -29,7 +23,7 @@ const login = asyncHandler(async (req, res) => {
             id: admin._id,
             username: admin.username,
             email: admin.email,
-            token: generateToken(admin._id),
+            token: generateToken(admin._id, "admin"),
         },
     });
 });

@@ -1,8 +1,8 @@
 import jwt from "jsonwebtoken";
-import Admin from "../models/Admin.js";
+import Customer from "../models/Customer.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
-const protect = asyncHandler(async (req, res, next) => {
+const protectCustomer = asyncHandler(async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -20,19 +20,19 @@ const protect = asyncHandler(async (req, res, next) => {
         throw new Error("Not authorized, invalid or expired token");
     }
 
-    if (decoded.role !== "admin") {
+    if (decoded.role !== "customer") {
         res.status(401);
-        throw new Error("Not authorized, admin access required");
+        throw new Error("Not authorized, customer access required");
     }
 
-    const admin = await Admin.findById(decoded.id);
-    if (!admin) {
+    const customer = await Customer.findById(decoded.id);
+    if (!customer) {
         res.status(401);
-        throw new Error("Not authorized, admin no longer exists");
+        throw new Error("Not authorized, account no longer exists");
     }
 
-    req.admin = admin;
+    req.customer = customer;
     next();
 });
 
-export default protect;
+export default protectCustomer;

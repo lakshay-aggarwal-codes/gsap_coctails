@@ -1,6 +1,7 @@
 import Cocktail from "../models/Cocktail.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { buildPaginationMeta } from "../utils/pagination.js";
+import attachLikedFlag from "../utils/attachLikedFlag.js";
 
 const escapeRegExp = (string) =>
     string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -35,14 +36,15 @@ const getCocktails = asyncHandler(async (req, res) => {
             Cocktail.find(filter)
                 .sort({ createdAt: -1 })
                 .skip(skip)
-                .limit(pageSize),
+                .limit(pageSize)
+                .lean(),
 
             Cocktail.countDocuments(filter),
         ]);
 
         return res.status(200).json({
             success: true,
-            data: cocktails,
+            data: await attachLikedFlag(cocktails, req.customer?._id),
             pagination: buildPaginationMeta({
                 page: currentPage,
                 limit: pageSize,
@@ -51,18 +53,18 @@ const getCocktails = asyncHandler(async (req, res) => {
         });
     }
 
-    const cocktails = await baseQuery;
+    const cocktails = await baseQuery.lean();
 
     res.status(200).json({
         success: true,
         count: cocktails.length,
-        data: cocktails,
+        data: await attachLikedFlag(cocktails, req.customer?._id),
     });
 });
 
 
 const getCocktailById = asyncHandler(async (req, res) => {
-    const cocktail = await Cocktail.findById(req.params.id);
+    const cocktail = await Cocktail.findById(req.params.id).lean();
 
     if (!cocktail) {
         return res.status(404).json({
@@ -71,9 +73,11 @@ const getCocktailById = asyncHandler(async (req, res) => {
         });
     }
 
+    const [withLikeFlag] = await attachLikedFlag([cocktail], req.customer?._id);
+
     res.status(200).json({
         success: true,
-        data: cocktail,
+        data: withLikeFlag,
     });
 });
 

@@ -9,7 +9,10 @@ const createReservation = asyncHandler(async (req, res) => {
     validateTimeSlot(time);
     await checkAvailability({ date, time, numberOfGuests });
 
-    const reservation = await Reservation.create(req.body);
+    const reservation = await Reservation.create({
+        ...req.body,
+        customer: req.customer?._id ?? null,
+    });
 
     res.status(201).json({
         success: true,
@@ -23,7 +26,7 @@ const getReservations = asyncHandler(async (req, res) => {
     const skip = (page - 1) * limit;
 
     const [reservations, total] = await Promise.all([
-        Reservation.find().sort({createdAt: -1}).skip(skip).limit(limit),
+        Reservation.find().sort({createdAt: -1}).skip(skip).limit(limit).populate("customer", "name email"),
         Reservation.countDocuments(),
     ]);
 
@@ -31,6 +34,15 @@ const getReservations = asyncHandler(async (req, res) => {
         success: true,
         data: reservations,
         pagination: buildPaginationMeta({page, limit, total}),
+    });
+});
+
+const getMyReservations = asyncHandler(async (req, res) => {
+    const reservations = await Reservation.find({ customer: req.customer._id }).sort({ date: -1 });
+
+    res.status(200).json({
+        success: true,
+        data: reservations,
     });
 });
 
@@ -100,6 +112,7 @@ const deleteReservation = asyncHandler(async (req, res) => {
 export {
     createReservation,
     getReservations,
+    getMyReservations,
     getReservationById,
     updateReservation,
     deleteReservation,

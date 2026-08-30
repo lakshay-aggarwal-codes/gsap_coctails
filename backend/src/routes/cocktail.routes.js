@@ -7,6 +7,7 @@ import {
     deleteCocktail,
 } from "../controllers/cocktail.controller.js";
 import protect from "../middleware/auth.middleware.js";
+import optionalCustomerAuth from "../middleware/optionalCustomerAuth.middleware.js";
 import validate from "../middleware/validate.middleware.js";
 import {
     cocktailQuerySchema,
@@ -18,12 +19,12 @@ const router = express.Router();
 
 router
     .route("/")
-    .get(validate(cocktailQuerySchema, "query"), getCocktails)
+    .get(optionalCustomerAuth, validate(cocktailQuerySchema, "query"), getCocktails)
     .post(protect, validate(cocktailCreateSchema), createCocktail);
 
 router
     .route("/:id")
-    .get(getCocktailById)
+    .get(optionalCustomerAuth, getCocktailById)
     .put(protect, validate(cocktailUpdateSchema), updateCocktail)
     .delete(protect, deleteCocktail);
 
