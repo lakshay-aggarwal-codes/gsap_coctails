@@ -15,7 +15,7 @@ const Cocktails = () => {
       .then((data) => {
         if (!isMounted) return;
         setPopularList(data.filter((c) => c.tier === "popular" && c.price));
-        +setLovedList(data.filter((c) => c.tier === "loved" && c.price));
+        setLovedList(data.filter((c) => c.tier === "loved" && c.price));
       })
       .catch((err) => {
         if (isMounted) setError(err.message);

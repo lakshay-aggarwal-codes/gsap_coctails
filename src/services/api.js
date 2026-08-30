@@ -148,3 +148,33 @@ export async function deleteCocktail({token, id}) {
     });
     return handleResponse(res);
 }
+
+export async function fetchReservationsByDate({token, days = 30}) {
+    const params = new URLSearchParams({days});
+    const res = await fetch(`${API_BASE_URL}/analytics/reservations-by-date?${params.toString()}`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function fetchBusiestSlots({token}) {
+    const res = await fetch(`${API_BASE_URL}/analytics/busiest-slots`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function fetchCocktailBreakdown({token}) {
+    const res = await fetch(`${API_BASE_URL}/analytics/cocktail-breakdown`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function fetchContactVolume({token, days = 30}) {
+    const params = new URLSearchParams({days});
+    const res = await fetch(`${API_BASE_URL}/analytics/contact-volume?${params.toString()}`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
