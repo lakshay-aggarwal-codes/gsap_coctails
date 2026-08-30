@@ -6,8 +6,7 @@ import gsap from "gsap";
 import {sendContactMessage} from "../services/api.js";
 const Contact = () => {
     const [formData, setFormData] = useState({name: "", email: "", message: ""});
-    // status: 'idle' | 'submitting' | 'success' | 'error'
-    const [status, setStatus] = useState("idle");
+     const [status, setStatus] = useState("idle");
     const [errorMessage, setErrorMessage] = useState("");
 
     const handleChange = (e) => {
@@ -101,9 +100,9 @@ const Contact = () => {
                     </div>
                 </div>
 
-                <div>
+                <div className='w-full max-w-md ms-auto text-left'>
                     <h3>Send Us a Message</h3>
-                    <form onSubmit={handleSubmit} className='space-y-4 max-w-md'>
+                    <form onSubmit={handleSubmit} className='space-y-4'>
                         <input
                             type='text'
                             name='name'
