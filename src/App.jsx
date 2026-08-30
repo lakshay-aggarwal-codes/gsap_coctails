@@ -10,6 +10,8 @@ import DashboardHome from "./pages/admin/DashboardHome.jsx";
 import Reservations from "./pages/admin/Reservations.jsx";
 import Contacts from "./pages/admin/Contacts.jsx";
 import CocktailsAdmin from "./pages/admin/Cocktails.jsx";
+import CustomerRegister from "./pages/account/Register.jsx";
+import CustomerLogin from "./pages/account/Login.jsx";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -18,6 +20,8 @@ const App = () => {
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<Home/>}/>
+                <Route path="/account/register" element={<CustomerRegister/>}/>
+                <Route path="/account/login" element={<CustomerLogin/>}/>
                 <Route path="/admin/login" element={<Login/>}/>
                 <Route
                     path="/admin"

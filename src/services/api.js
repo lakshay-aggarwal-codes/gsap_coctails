@@ -178,3 +178,27 @@ export async function fetchContactVolume({token, days = 30}) {
     });
     return handleResponse(res);
 }
+
+export async function registerCustomer(payload) {
+    const res = await fetch(`${API_BASE_URL}/customers/register`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    return handleResponse(res);
+}
+
+export async function loginCustomer(credentials) {
+    const res = await fetch(`${API_BASE_URL}/customers/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+    });
+
+    return handleResponse(res);
+}
