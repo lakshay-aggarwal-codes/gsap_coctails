@@ -4,6 +4,7 @@ import {
     getBusiestSlots,
     getCocktailBreakdown,
     getContactVolume,
+    getMostLikedCocktails,
 } from "../services/analytics.service.js";
 
 const reservationsByDate = asyncHandler(async (req, res) => {
@@ -28,4 +29,15 @@ const contactVolume = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data });
 });
 
-export { reservationsByDate, busiestSlots, cocktailBreakdown, contactVolume };
+const mostLikedCocktails = asyncHandler(async (req, res) => {
+    const data = await getMostLikedCocktails();
+    res.status(200).json({ success: true, data });
+});
+
+export {
+    reservationsByDate,
+    busiestSlots,
+    cocktailBreakdown,
+    contactVolume,
+    mostLikedCocktails,
+};

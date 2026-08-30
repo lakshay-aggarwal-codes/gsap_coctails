@@ -4,6 +4,7 @@ import {
     busiestSlots,
     cocktailBreakdown,
     contactVolume,
+    mostLikedCocktails,
 } from "../controllers/analytics.controller.js";
 import protect from "../middleware/auth.middleware.js";
 import validate from "../middleware/validate.middleware.js";
@@ -17,5 +18,6 @@ router.get("/reservations-by-date", validate(trendQuerySchema, "query"), reserva
 router.get("/busiest-slots", busiestSlots);
 router.get("/cocktail-breakdown", cocktailBreakdown);
 router.get("/contact-volume", validate(trendQuerySchema, "query"), contactVolume);
+router.get("/most-liked-cocktails", mostLikedCocktails);
 
 export default router;
