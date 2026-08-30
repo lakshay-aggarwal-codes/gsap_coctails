@@ -8,6 +8,9 @@ import reservationRoutes from "./routes/reservation.routes.js";
 import contactRoutes from "./routes/contact.routes.js";
 import authRoutes from "./routes/auth.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./config/swagger.js";
+
 
 const app = express();
 
@@ -27,7 +30,20 @@ app.use("/api/cocktails", cocktailRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use(
+    "/api/docs",
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+                "script-src": ["'self'", "'unsafe-inline'"],
+                "style-src": ["'self'", "'unsafe-inline'"],
+            },
+        },
+    }),
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec)
+);
 app.use(notFound);
 app.use(errorHandler);
-
 export default app;
