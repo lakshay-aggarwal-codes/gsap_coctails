@@ -40,11 +40,13 @@ const reservationSchema = new mongoose.Schema(
             type: String,
             enum: ["pending", "confirmed", "cancelled"],
             default: "pending",
+            customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", default: null },
         },
     },
     { timestamps: true }
 );
 reservationSchema.index({ createdAt: -1 });
+reservationSchema.index({ customer: 1, date: -1 });
 const Reservation = mongoose.model("Reservation", reservationSchema);
 
 export default Reservation;

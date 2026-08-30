@@ -19,7 +19,10 @@ const protect = asyncHandler(async (req, res, next) => {
         res.status(401);
         throw new Error("Not authorized, invalid or expired token");
     }
-
+    if (decoded.role !== "admin") {
+        res.status(401);
+        throw new Error("Not authorized, admin access required");
+    }
     const admin = await Admin.findById(decoded.id);
     if (!admin) {
         res.status(401);
