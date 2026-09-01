@@ -21,4 +21,24 @@ const updateProfileSchema = z.object({
     name: z.string().trim().min(1, "Name is required").max(100),
 });
 
-export { registerSchema, loginSchema, updateProfileSchema };
+const forgotPasswordSchema = z.object({
+    email: z.string().trim().toLowerCase().email("Please provide a valid email"),
+});
+
+const resetPasswordSchema = z
+    .object({
+        password: z.string().min(8, "Password must be at least 8 characters").max(72),
+        confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "Passwords do not match",
+        path: ["confirmPassword"],
+    });
+
+export {
+    registerSchema,
+    loginSchema,
+    updateProfileSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema,
+};
