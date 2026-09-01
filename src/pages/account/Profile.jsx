@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchMyProfile, updateMyProfile } from "../../services/api.js";
+import { fetchMyProfile, updateMyProfile, resendVerificationEmail } from "../../services/api.js";
 import { useCustomerAuth } from "../../context/CustomerAuthContext.jsx";
 import useCustomerAuthGuard from "../../hooks/useCustomerAuthGuard.js";
 
@@ -9,6 +9,7 @@ const Profile = () => {
     const queryClient = useQueryClient();
     const [name, setName] = useState("");
     const [saved, setSaved] = useState(false);
+    const [resendSent, setResendSent] = useState(false);
 
     const profileQuery = useQuery({
         queryKey: ["customer", "profile"],
@@ -30,6 +31,11 @@ const Profile = () => {
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
         },
+    });
+
+    const resendMutation = useMutation({
+        mutationFn: () => resendVerificationEmail({ token }),
+        onSuccess: () => setResendSent(true),
     });
 
     const handleSubmit = (e) => {
@@ -58,6 +64,23 @@ const Profile = () => {
     return (
         <div className="max-w-md">
             <h1 className="font-serif text-3xl mb-8">Profile</h1>
+
+            {profileQuery.data && !profileQuery.data.isEmailVerified && (
+                <div className="mb-6 rounded-lg border border-yellow/30 bg-yellow/10 px-4 py-3 text-sm">
+                    <p className="text-yellow">Your email address isn't verified yet.</p>
+                    {resendSent ? (
+                        <p className="text-white-100/60 mt-1">Verification email sent — check your inbox.</p>
+                    ) : (
+                        <button
+                            onClick={() => resendMutation.mutate()}
+                            disabled={resendMutation.isPending}
+                            className="mt-1 text-yellow underline hover:opacity-80 disabled:opacity-50"
+                        >
+                            {resendMutation.isPending ? "Sending..." : "Resend verification email"}
+                        </button>
+                    )}
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>

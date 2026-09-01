@@ -1,8 +1,9 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useGSAP} from "@gsap/react";
 import {SplitText} from "gsap/all";
 import gsap from "gsap";
 import {createReservation} from "../services/api.js";
+import {useCustomerAuth} from "../context/CustomerAuthContext.jsx";
 
 const initialFormState = {
     name: "",
@@ -19,6 +20,19 @@ const Reservation = () => {
     // status: 'idle' | 'submitting' | 'success' | 'error'
     const [status, setStatus] = useState("idle");
     const [errorMessage, setErrorMessage] = useState("");
+    const {token, customer, isAuthenticated} = useCustomerAuth();
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            setFormData((prev) => ({
+                ...prev,
+                name: prev.name || customer?.name || "",
+                email: prev.email || customer?.email || "",
+            }));
+        }
+        // Only prefill once when auth becomes available, not on every keystroke.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isAuthenticated]);
 
     useGSAP(() => {
         const titleSplit = SplitText.create("#reservation h2", {type: "words"});
@@ -46,12 +60,15 @@ const Reservation = () => {
         setErrorMessage("");
 
         try {
-            await createReservation({
-                ...formData,
-                numberOfGuests: Number(formData.numberOfGuests),
-            });
+            await createReservation(
+                {
+                    ...formData,
+                    numberOfGuests: Number(formData.numberOfGuests),
+                },
+                token
+            );
             setStatus("success");
-            setFormData(initialFormState);
+            setFormData(isAuthenticated ? {...initialFormState, name: customer?.name || "", email: customer?.email || ""} : initialFormState);
         } catch (err) {
             setStatus("error");
             setErrorMessage(err.message);
@@ -60,9 +77,16 @@ const Reservation = () => {
 
     return (
         <section id='reservation' className='min-h-screen py-28 2xl:px-0 px-5 container mx-auto'>
-            <h2 className='text-5xl md:text-6xl font-modern-negra text-center mb-12'>
+            <h2 className='text-5xl md:text-6xl font-modern-negra text-center mb-4'>
                 Reserve a Table
             </h2>
+            {isAuthenticated ? (
+                <p className="text-center text-sm text-white-100/60 mb-8">
+                    Booking as {customer?.name} — this will appear under My Reservations.
+                </p>
+            ) : (
+                <div className="mb-8" />
+            )}
 
             <form onSubmit={handleSubmit} className='max-w-2xl mx-auto space-y-6'>
                 <div className='grid md:grid-cols-2 gap-5'>

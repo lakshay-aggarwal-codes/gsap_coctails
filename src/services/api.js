@@ -258,3 +258,34 @@ export async function unlikeCocktail({ token, cocktailId }) {
     });
     return handleResponse(res);
 }
+
+export async function verifyEmail({ verificationToken }) {
+    const res = await fetch(`${API_BASE_URL}/customers/verify-email/${verificationToken}`);
+    return handleResponse(res);
+}
+
+export async function resendVerificationEmail({ token }) {
+    const res = await fetch(`${API_BASE_URL}/customers/resend-verification`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function forgotPassword({ email }) {
+    const res = await fetch(`${API_BASE_URL}/customers/forgot-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+    });
+    return handleResponse(res);
+}
+
+export async function resetPassword({ resetToken, password, confirmPassword }) {
+    const res = await fetch(`${API_BASE_URL}/customers/reset-password/${resetToken}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password, confirmPassword }),
+    });
+    return handleResponse(res);
+}
