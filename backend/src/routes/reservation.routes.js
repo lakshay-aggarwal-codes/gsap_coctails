@@ -6,6 +6,7 @@ import {
     getReservationById,
     updateReservation,
     deleteReservation,
+    cancelMyReservation,
 } from "../controllers/reservation.controller.js";
 import formSubmissionLimiter from "../middleware/rateLimiter.middleware.js";
 import protect from "../middleware/auth.middleware.js";
@@ -18,6 +19,7 @@ import {createReservationSchema, updateReservationSchema} from "../validators/re
 const router = express.Router();
 
 router.get("/mine", protectCustomer, getMyReservations);
+router.delete("/mine/:id", protectCustomer, cancelMyReservation);
 
 router
     .route("/:id")

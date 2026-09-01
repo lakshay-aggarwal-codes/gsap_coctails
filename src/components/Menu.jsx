@@ -1,18 +1,23 @@
 import {useEffect, useRef, useState} from "react";
 import {useGSAP} from "@gsap/react";
 import {gsap} from "gsap";
-import {fetchCocktails} from "../services/api.js";
+import {useNavigate} from "react-router-dom";
+import {fetchCocktails, likeCocktail, unlikeCocktail} from "../services/api.js";
+import {useCustomerAuth} from "../context/CustomerAuthContext.jsx";
 
 const Menu = () => {
     const contentRef = useRef();
     const [cocktails, setCocktails] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [error, setError] = useState(null);
+    const [likeError, setLikeError] = useState(null);
+    const {token, isAuthenticated} = useCustomerAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         let isMounted = true;
 
-        fetchCocktails()
+        fetchCocktails({}, token)
             .then((data) => {
                 if (!isMounted) return;
                 // Only entries with an image belong in this carousel —
@@ -27,7 +32,36 @@ const Menu = () => {
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [token]);
+
+    const toggleLike = async (cocktail) => {
+        if (!isAuthenticated) {
+            navigate("/account/login");
+            return;
+        }
+
+        setLikeError(null);
+        const wasLiked = Boolean(cocktail.isLikedByMe);
+
+        // optimistic UI
+        setCocktails((prev) =>
+            prev.map((c) => (c._id === cocktail._id ? {...c, isLikedByMe: !wasLiked} : c))
+        );
+
+        try {
+            if (wasLiked) {
+                await unlikeCocktail({token, cocktailId: cocktail._id});
+            } else {
+                await likeCocktail({token, cocktailId: cocktail._id});
+            }
+        } catch (err) {
+            // roll back on failure
+            setCocktails((prev) =>
+                prev.map((c) => (c._id === cocktail._id ? {...c, isLikedByMe: wasLiked} : c))
+            );
+            setLikeError(err.message);
+        }
+    };
 
     const totalCocktails = cocktails.length;
 
@@ -133,8 +167,23 @@ const Menu = () => {
                         <p id='title'>{currCocktail.name}</p>
                     </div>
                     <div className='details'>
-                        <h2>{currCocktail.title}</h2>
+                        <div className="flex items-center gap-3">
+                            <h2>{currCocktail.title}</h2>
+                            <button
+                                type="button"
+                                onClick={() => toggleLike(currCocktail)}
+                                aria-pressed={Boolean(currCocktail.isLikedByMe)}
+                                aria-label={currCocktail.isLikedByMe ? "Unlike this cocktail" : "Like this cocktail"}
+                                title={isAuthenticated ? undefined : "Sign in to save favorites"}
+                                className={`text-xl leading-none transition-colors ${
+                                    currCocktail.isLikedByMe ? "text-red-400" : "text-white/40 hover:text-red-300"
+                                }`}
+                            >
+                                {currCocktail.isLikedByMe ? "♥" : "♡"}
+                            </button>
+                        </div>
                         <p>{currCocktail.description}</p>
+                        {likeError && <p className="text-sm text-red-400 mt-1">{likeError}</p>}
                     </div>
                 </div>
             </div>

@@ -11,6 +11,7 @@ import analyticsRoutes from "./routes/analytics.routes.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger.js";
 import favoriteRoutes from "./routes/favorite.routes.js";
+import customerRoutes from "./routes/customer.routes.js";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/customers", customerRoutes);
 app.use("/api/cocktails", cocktailRoutes);
 app.use("/api/reservations", reservationRoutes);
 app.use("/api/contact", contactRoutes);

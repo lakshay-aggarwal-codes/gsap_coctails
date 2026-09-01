@@ -13,11 +13,13 @@ async function handleResponse(res) {
     return body.data;
 }
 
-export async function fetchCocktails(params = {}) {
+export async function fetchCocktails(params = {}, token) {
     const query = new URLSearchParams(params).toString();
     const url = `${API_BASE_URL}/cocktails${query ? `?${query}` : ""}`;
 
-    const res = await fetch(url);
+    const res = await fetch(url, {
+        headers: getAuthHeaders(token),
+    });
     return handleResponse(res);
 }
 
@@ -200,5 +202,59 @@ export async function loginCustomer(credentials) {
         body: JSON.stringify(credentials),
     });
 
+    return handleResponse(res);
+}
+
+export async function fetchMyProfile({ token }) {
+    const res = await fetch(`${API_BASE_URL}/customers/me`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function updateMyProfile({ token, name }) {
+    const res = await fetch(`${API_BASE_URL}/customers/me`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...getAuthHeaders(token) },
+        body: JSON.stringify({ name }),
+    });
+    return handleResponse(res);
+}
+
+export async function fetchMyReservations({ token }) {
+    const res = await fetch(`${API_BASE_URL}/reservations/mine`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function cancelMyReservation({ token, id }) {
+    const res = await fetch(`${API_BASE_URL}/reservations/mine/${id}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function fetchMyFavorites({ token }) {
+    const res = await fetch(`${API_BASE_URL}/customers/me/favorites`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function likeCocktail({ token, cocktailId }) {
+    const res = await fetch(`${API_BASE_URL}/favorites/${cocktailId}`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function unlikeCocktail({ token, cocktailId }) {
+    const res = await fetch(`${API_BASE_URL}/favorites/${cocktailId}`, {
+        method: "DELETE",
+        headers: getAuthHeaders(token),
+    });
     return handleResponse(res);
 }

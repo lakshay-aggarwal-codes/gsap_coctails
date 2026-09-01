@@ -95,6 +95,34 @@ const updateReservation = asyncHandler(async (req, res) => {
 });
 
 
+const cancelMyReservation = asyncHandler(async (req, res) => {
+    const reservation = await Reservation.findOne({
+        _id: req.params.id,
+        customer: req.customer._id,
+    });
+
+    if (!reservation) {
+        res.status(404);
+        throw new Error("Reservation not found");
+    }
+
+    if (reservation.status === "cancelled") {
+        res.status(200).json({
+            success: true,
+            data: reservation,
+        });
+        return;
+    }
+
+    reservation.status = "cancelled";
+    await reservation.save();
+
+    res.status(200).json({
+        success: true,
+        data: reservation,
+    });
+});
+
 const deleteReservation = asyncHandler(async (req, res) => {
     const reservation = await Reservation.findByIdAndDelete(req.params.id);
 
@@ -116,4 +144,5 @@ export {
     getReservationById,
     updateReservation,
     deleteReservation,
+    cancelMyReservation,
 };

@@ -153,3 +153,61 @@ describe("Reservation update (PUT) — re-validation on rebooking", () => {
         expect(updateRes.body.data.status).toBe("confirmed");
     });
 });
+
+
+describe("customer linking via optionalCustomerAuth", () => {
+    let customerToken;
+
+    beforeAll(async () => {
+        const Customer = (await import("../models/Customer.js")).default;
+        await Customer.deleteMany({ email: "linktest@example.com" });
+        const res = await request(app).post("/api/customers/register").send({
+            name: "Link Test",
+            email: "linktest@example.com",
+            password: "password123",
+            confirmPassword: "password123",
+        });
+        customerToken = res.body.data.token;
+    });
+
+    it("attaches the customer when a valid customer token is present", async () => {
+        const res = await request(app)
+            .post("/api/reservations")
+            .set("Authorization", `Bearer ${customerToken}`)
+            .send(validReservation({ date: futureDate(40) }));
+
+        expect(res.status).toBe(201);
+        expect(res.body.data.customer).toBeTruthy();
+    });
+
+    it("leaves customer null for a guest booking with no token", async () => {
+        const res = await request(app).post("/api/reservations").send(validReservation({ date: futureDate(41) }));
+
+        expect(res.status).toBe(201);
+        expect(res.body.data.customer).toBeFalsy();
+    });
+
+    it("does not reject the booking if an invalid/expired token is supplied", async () => {
+        const res = await request(app)
+            .post("/api/reservations")
+            .set("Authorization", "Bearer not-a-real-token")
+            .send(validReservation({ date: futureDate(42) }));
+
+        expect(res.status).toBe(201);
+        expect(res.body.data.customer).toBeFalsy();
+    });
+
+    it("GET /reservations/mine returns only that customer's own reservations", async () => {
+        await request(app)
+            .post("/api/reservations")
+            .set("Authorization", `Bearer ${customerToken}`)
+            .send(validReservation({ date: futureDate(43) }));
+
+          await request(app).post("/api/reservations").send(validReservation({ date: futureDate(44) }));
+
+        const res = await request(app).get("/api/reservations/mine").set("Authorization", `Bearer ${customerToken}`);
+
+        expect(res.status).toBe(200);
+        expect(res.body.data.every((r) => r.customer)).toBe(true);
+    });
+});

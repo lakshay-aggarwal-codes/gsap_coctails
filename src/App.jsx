@@ -12,6 +12,11 @@ import Contacts from "./pages/admin/Contacts.jsx";
 import CocktailsAdmin from "./pages/admin/Cocktails.jsx";
 import CustomerRegister from "./pages/account/Register.jsx";
 import CustomerLogin from "./pages/account/Login.jsx";
+import ProtectedCustomerRoute from "./components/account/ProtectedCustomerRoute.jsx";
+import AccountLayout from "./pages/account/AccountLayout.jsx";
+import Profile from "./pages/account/Profile.jsx";
+import MyReservations from "./pages/account/MyReservations.jsx";
+import MyFavorites from "./pages/account/MyFavorites.jsx";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
@@ -22,6 +27,18 @@ const App = () => {
                 <Route path="/" element={<Home/>}/>
                 <Route path="/account/register" element={<CustomerRegister/>}/>
                 <Route path="/account/login" element={<CustomerLogin/>}/>
+                <Route
+                    path="/account"
+                    element={
+                        <ProtectedCustomerRoute>
+                            <AccountLayout/>
+                        </ProtectedCustomerRoute>
+                    }
+                >
+                    <Route index element={<Profile/>}/>
+                    <Route path="my-reservations" element={<MyReservations/>}/>
+                    <Route path="favorites" element={<MyFavorites/>}/>
+                </Route>
                 <Route path="/admin/login" element={<Login/>}/>
                 <Route
                     path="/admin"

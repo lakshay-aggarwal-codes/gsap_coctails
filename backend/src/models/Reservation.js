@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
- 
+
 const reservationSchema = new mongoose.Schema(
     {
         name: {
@@ -20,11 +20,11 @@ const reservationSchema = new mongoose.Schema(
             trim: true,
         },
         date: {
-            type: String, 
+            type: String,
             required: [true, "Reservation date is required"],
         },
         time: {
-            type: String, 
+            type: String,
             required: [true, "Reservation time is required"],
         },
         numberOfGuests: {
@@ -40,8 +40,8 @@ const reservationSchema = new mongoose.Schema(
             type: String,
             enum: ["pending", "confirmed", "cancelled"],
             default: "pending",
-            customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", default: null },
         },
+        customer: { type: mongoose.Schema.Types.ObjectId, ref: "Customer", default: null },
     },
     { timestamps: true }
 );
