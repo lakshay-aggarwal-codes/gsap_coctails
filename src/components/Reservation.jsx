@@ -17,7 +17,6 @@ const initialFormState = {
 
 const Reservation = () => {
     const [formData, setFormData] = useState(initialFormState);
-    // status: 'idle' | 'submitting' | 'success' | 'error'
     const [status, setStatus] = useState("idle");
     const [errorMessage, setErrorMessage] = useState("");
     const {token, customer, isAuthenticated} = useCustomerAuth();
@@ -30,8 +29,6 @@ const Reservation = () => {
                 email: prev.email || customer?.email || "",
             }));
         }
-        // Only prefill once when auth becomes available, not on every keystroke.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isAuthenticated]);
 
     useGSAP(() => {
@@ -60,14 +57,14 @@ const Reservation = () => {
         setErrorMessage("");
 
         try {
-            await createReservation(
+            const data = await createReservation(
                 {
                     ...formData,
                     numberOfGuests: Number(formData.numberOfGuests),
                 },
                 token
             );
-            setStatus("success");
+            setStatus(data.status === "waitlisted" ? "waitlisted" : "confirmed");
             setFormData(isAuthenticated ? {...initialFormState, name: customer?.name || "", email: customer?.email || ""} : initialFormState);
         } catch (err) {
             setStatus("error");
@@ -195,9 +192,14 @@ const Reservation = () => {
                     {status === "submitting" ? "Submitting..." : "Reserve Now"}
                 </button>
 
-                {status === "success" && (
+                {status === "confirmed" && (
                     <p className='text-center text-green-400'>
-                        Reservation received! We'll confirm shortly.
+                        You're confirmed! We'll see you then.
+                    </p>
+                )}
+                {status === "waitlisted" && (
+                    <p className='text-center text-yellow'>
+                        That slot is full right now — you're on the waitlist and we'll email you instantly if a table opens up.
                     </p>
                 )}
                 {status === "error" && (

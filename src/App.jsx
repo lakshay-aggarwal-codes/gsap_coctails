@@ -12,21 +12,29 @@ import Contacts from "./pages/admin/Contacts.jsx";
 import CocktailsAdmin from "./pages/admin/Cocktails.jsx";
 import CustomerRegister from "./pages/account/Register.jsx";
 import CustomerLogin from "./pages/account/Login.jsx";
+import ForgotPassword from "./pages/account/ForgotPassword.jsx";
+import ResetPassword from "./pages/account/ResetPassword.jsx";
+import VerifyEmail from "./pages/account/VerifyEmail.jsx";
 import ProtectedCustomerRoute from "./components/account/ProtectedCustomerRoute.jsx";
 import AccountLayout from "./pages/account/AccountLayout.jsx";
 import Profile from "./pages/account/Profile.jsx";
 import MyReservations from "./pages/account/MyReservations.jsx";
 import MyFavorites from "./pages/account/MyFavorites.jsx";
+import StatusUpdateBanner from "./components/StatusUpdateBanner.jsx";
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
 
 const App = () => {
     return (
         <BrowserRouter>
+            <StatusUpdateBanner/>
             <Routes>
                 <Route path="/" element={<Home/>}/>
                 <Route path="/account/register" element={<CustomerRegister/>}/>
                 <Route path="/account/login" element={<CustomerLogin/>}/>
+                <Route path="/account/forgot-password" element={<ForgotPassword/>}/>
+                <Route path="/account/reset-password/:token" element={<ResetPassword/>}/>
+                <Route path="/account/verify-email/:token" element={<VerifyEmail/>}/>
                 <Route
                     path="/account"
                     element={

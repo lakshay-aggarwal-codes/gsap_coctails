@@ -37,7 +37,7 @@ const ForgotPassword = () => {
 
                 {sent ? (
                     <p className="text-center text-white-100/70">
-                        If an account exists for that email, a reset link is on its way. It'll expire in 1 hour.
+                          A reset link is on its way. It'll expire in 1 hour.
                     </p>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">

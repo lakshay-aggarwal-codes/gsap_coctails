@@ -4,14 +4,9 @@ import { fetchReservationsAdmin, updateReservationStatus } from "../../services/
 import { useAuth } from "../../context/AuthContext.jsx";
 import useAuthGuard from "../../hooks/useAuthGuard.js";
 
-const STATUS_OPTIONS = ["pending", "confirmed", "cancelled"];
-const PAGE_SIZE = 10;
+const STATUS_OPTIONS = ["pending", "confirmed", "waitlisted", "cancelled"];
+const statusClass = { pending: "text-yellow", confirmed: "text-green-400", waitlisted: "text-orange-400", cancelled: "text-red-400" };const PAGE_SIZE = 10;
 
-const statusClass = {
-    pending: "text-yellow",
-    confirmed: "text-green-400",
-    cancelled: "text-red-400",
-};
 
 const Reservations = () => {
     const [page, setPage] = useState(1);

@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useGSAP } from "@gsap/react";
+import {useState, useRef} from "react";
+import {Link, useNavigate} from "react-router-dom";
+import {useGSAP} from "@gsap/react";
 import gsap from "gsap";
-import { SplitText } from "gsap/all";
-import { registerCustomer } from "../../services/api.js";
-import { useCustomerAuth } from "../../context/CustomerAuthContext.jsx";
+import {SplitText} from "gsap/all";
+import {registerCustomer} from "../../services/api.js";
+import {useCustomerAuth} from "../../context/CustomerAuthContext.jsx";
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -15,13 +15,15 @@ const Register = () => {
     });
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { login } = useCustomerAuth();
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const {login} = useCustomerAuth();
     const navigate = useNavigate();
     const containerRef = useRef();
 
     useGSAP(
         () => {
-            const split = new SplitText(".account-title", { type: "chars" });
+            const split = new SplitText(".account-title", {type: "chars"});
 
             gsap.from(split.chars, {
                 yPercent: 100,
@@ -47,11 +49,11 @@ const Register = () => {
                 delay: 0.1,
             });
         },
-        { scope: containerRef }
+        {scope: containerRef}
     );
 
     const handleChange = (e) => {
-        setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+        setFormData((prev) => ({...prev, [e.target.name]: e.target.value}));
     };
 
     const handleSubmit = async (e) => {
@@ -62,7 +64,7 @@ const Register = () => {
         try {
             const data = await registerCustomer(formData);
             login(data);
-            navigate("/account", { replace: true });
+            navigate("/account", {replace: true});
         } catch (err) {
             setError(err.message);
         } finally {
@@ -75,7 +77,7 @@ const Register = () => {
             ref={containerRef}
             className="relative min-h-dvh w-full flex-center radial-gradient px-5 overflow-hidden"
         >
-            <div className="noisy" />
+            <div className="noisy"/>
 
             <img
                 src="/images/cocktail-left-leaf.png"
@@ -121,29 +123,46 @@ const Register = () => {
                         autoComplete="username"
                         className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-yellow"
                     />
-                    <input
-                        type="password"
-                        name="password"
-                        required
-                        value={formData.password}
-                        onChange={handleChange}
-                        placeholder="Password"
-                        aria-label="Password"
-                        autoComplete="new-password"
-                        className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-yellow"
-                    />
-                    <input
-                        type="password"
-                        name="confirmPassword"
-                        required
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        placeholder="Confirm password"
-                        aria-label="Confirm password"
-                        autoComplete="new-password"
-                        className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-yellow"
-                    />
-
+                    <div className="relative">
+                        <input
+                            type={showPassword ? "text" : "password"}
+                            name="password"
+                            required
+                            value={formData.password}
+                            onChange={handleChange}
+                            placeholder="Password"
+                            aria-label="Password"
+                            autoComplete="new-password"
+                            className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 pr-16 text-white placeholder-white/40 focus:outline-none focus:border-yellow"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white-100/60 hover:text-yellow"
+                        >
+                            {showPassword ? "Hide" : "Show"}
+                        </button>
+                    </div>
+                    <div className="relative">
+                        <input
+                            type={showConfirmPassword ? "text" : "password"}
+                            name="confirmPassword"
+                            required
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            placeholder="Confirm password"
+                            aria-label="Confirm password"
+                            autoComplete="new-password"
+                            className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 pr-16 text-white placeholder-white/40 focus:outline-none focus:border-yellow"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword((prev) => !prev)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-white-100/60 hover:text-yellow"
+                        >
+                            {showConfirmPassword ? "Hide" : "Show"}
+                        </button>
+                    </div>
                     {error && (
                         <p role="alert" className="text-sm text-red-400">
                             {error}

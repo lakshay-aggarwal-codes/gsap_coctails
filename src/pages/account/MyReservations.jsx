@@ -4,11 +4,7 @@ import { fetchMyReservations, cancelMyReservation } from "../../services/api.js"
 import { useCustomerAuth } from "../../context/CustomerAuthContext.jsx";
 import useCustomerAuthGuard from "../../hooks/useCustomerAuthGuard.js";
 
-const statusClass = {
-    pending: "text-yellow",
-    confirmed: "text-green-400",
-    cancelled: "text-red-400",
-};
+const statusClass = { pending: "text-yellow", confirmed: "text-green-400", waitlisted: "text-orange-400", cancelled: "text-red-400" };
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 

@@ -23,10 +23,10 @@ export async function fetchCocktails(params = {}, token) {
     return handleResponse(res);
 }
 
-export async function createReservation(reservation) {
+export async function createReservation(reservation, token) {
     const res = await fetch(`${API_BASE_URL}/reservations`, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: {"Content-Type": "application/json", ...getAuthHeaders(token)},
         body: JSON.stringify(reservation),
     });
     return handleResponse(res);
@@ -286,6 +286,21 @@ export async function resetPassword({ resetToken, password, confirmPassword }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password, confirmPassword }),
+    });
+    return handleResponse(res);
+}
+
+export async function fetchUnseenStatusUpdates({ token }) {
+    const res = await fetch(`${API_BASE_URL}/reservations/mine/status-updates`, {
+        headers: getAuthHeaders(token),
+    });
+    return handleResponse(res);
+}
+
+export async function acknowledgeStatusUpdates({ token }) {
+    const res = await fetch(`${API_BASE_URL}/reservations/mine/status-updates/ack`, {
+        method: "POST",
+        headers: getAuthHeaders(token),
     });
     return handleResponse(res);
 }
