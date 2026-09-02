@@ -144,16 +144,9 @@ const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
     const customer = await Customer.findOne({ email });
 
-    // Always respond the same way whether or not the account exists,
-    // so this endpoint can't be used to check which emails are registered.
-    const genericResponse = {
-        success: true,
-        message: "If an account exists for that email, a reset link has been sent.",
-    };
-
     if (!customer) {
-        res.status(200).json(genericResponse);
-        return;
+        res.status(404);
+        throw new Error("No account found with that email address");
     }
 
     const { rawToken, tokenHash } = createToken();
@@ -170,7 +163,10 @@ const forgotPassword = asyncHandler(async (req, res) => {
         html: `<p><a href="${resetUrl}">Reset your password</a> (expires in 1 hour).</p><p>If you didn't request this, ignore this email.</p>`,
     });
 
-    res.status(200).json(genericResponse);
+    res.status(200).json({
+        success: true,
+        message: "Reset link sent",
+    });
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
