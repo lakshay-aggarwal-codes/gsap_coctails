@@ -22,6 +22,26 @@ const customerSchema = new mongoose.Schema(
             minlength: [8, "Password must be at least 8 characters"],
             select: false,
         },
+        isEmailVerified: {
+            type: Boolean,
+            default: false,
+        },
+        emailVerificationTokenHash: {
+            type: String,
+            select: false,
+        },
+        emailVerificationExpires: {
+            type: Date,
+            select: false,
+        },
+        passwordResetTokenHash: {
+            type: String,
+            select: false,
+        },
+        passwordResetExpires: {
+            type: Date,
+            select: false,
+        },
     },
     { timestamps: true }
 );

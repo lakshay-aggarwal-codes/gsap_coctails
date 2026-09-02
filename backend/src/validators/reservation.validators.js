@@ -48,7 +48,7 @@ const updateReservationSchema = z.object({
     time: timeField.optional(),
     numberOfGuests: guestCountField.optional(),
     specialRequest: z.string().trim().max(500).optional(),
-    status: z.enum(["pending", "confirmed", "cancelled"]).optional(),
+    status: z.enum(["pending", "confirmed", "cancelled", "waitlisted"]).optional(),
 });
 
 export { createReservationSchema, updateReservationSchema };

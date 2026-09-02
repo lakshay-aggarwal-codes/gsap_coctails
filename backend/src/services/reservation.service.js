@@ -1,4 +1,4 @@
-import Reservation from "../models/Reservation.js";
+import SlotCapacity from "../models/SlotCapacity.js";
 import AppError from "../utils/AppError.js";
 import RESERVATION_RULES from "../config/reservationRules.js";
 
@@ -33,30 +33,31 @@ const validateTimeSlot = (time) => {
     }
 };
 
-const checkAvailability = async ({ date, time, numberOfGuests, excludeReservationId }) => {
+const reserveSlotCapacity = async ({ date, time, numberOfGuests }) => {
     const filter = {
         date,
         time,
-        status: { $ne: "cancelled" },
+        bookedGuests: { $lte: RESERVATION_RULES.MAX_GUESTS_PER_SLOT - numberOfGuests },
+    };
+    const update = {
+        $inc: { bookedGuests: numberOfGuests },
+        $setOnInsert: { date, time },
     };
 
-    if (excludeReservationId) {
-        filter._id = { $ne: excludeReservationId };
-    }
-
-    const existingReservations = await Reservation.find(filter).select("numberOfGuests");
-    const bookedGuests = existingReservations.reduce((sum, r) => sum + r.numberOfGuests, 0);
-    const remaining = RESERVATION_RULES.MAX_GUESTS_PER_SLOT - bookedGuests;
-
-    if (numberOfGuests > remaining) {
-        if (remaining <= 0) {
-            throw new AppError(`Sorry, we're fully booked for ${time} on ${date}. Please choose another time.`, 409);
+    try {
+        const updated = await SlotCapacity.findOneAndUpdate(filter, update, { upsert: true, new: true });
+        return Boolean(updated);
+    } catch (error) {
+        if (error.code === 11000) {
+            const updated = await SlotCapacity.findOneAndUpdate(filter, { $inc: { bookedGuests: numberOfGuests } }, { new: true });
+            return Boolean(updated);
         }
-        throw new AppError(
-            `Only ${remaining} seat${remaining === 1 ? "" : "s"} left for ${time} on ${date} — please reduce your party size or choose another time.`,
-            409
-        );
+        throw error;
     }
 };
 
-export { validateTimeSlot, checkAvailability };
+const releaseSlotCapacity = async ({ date, time, numberOfGuests }) => {
+    await SlotCapacity.updateOne({ date, time }, { $inc: { bookedGuests: -numberOfGuests } });
+};
+
+export { validateTimeSlot, reserveSlotCapacity, releaseSlotCapacity };
