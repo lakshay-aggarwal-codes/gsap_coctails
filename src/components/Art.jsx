@@ -32,12 +32,12 @@ const Art = () => {
                 scale: 1.3,
                 maskPosition: 'center',
                 maskSize: '400%',
-                duration: 0.7,
+                duration: 0.9,
                 ease: 'power1.inOut'
             })
             .to('#masked-content', {
                 opacity: 1,
-                duration: 0.6,
+                duration: 0.8,
                 ease: 'power1.inOut'
             });
 
