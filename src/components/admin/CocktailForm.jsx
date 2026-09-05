@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 
 const EMPTY_FORM = {
     name: "",
@@ -13,42 +13,39 @@ const EMPTY_FORM = {
     isAvailable: true,
 };
 
+const buildFormState = (initialValues) => {
+    if (!initialValues) {
+        return EMPTY_FORM;
+    }
+
+    return {
+        name: initialValues.name ?? "",
+        category: initialValues.category ?? "cocktail",
+        tier: initialValues.tier ?? "popular",
+        country: initialValues.country ?? "",
+        detail: initialValues.detail ?? "",
+        price:
+            initialValues.price !== undefined && initialValues.price !== null
+                ? String(initialValues.price)
+                : "",
+        image: initialValues.image ?? "",
+        title: initialValues.title ?? "",
+        description: initialValues.description ?? "",
+        isAvailable:
+            initialValues.isAvailable !== undefined
+                ? Boolean(initialValues.isAvailable)
+                : true,
+    };
+};
+
 const CocktailForm = ({
                           initialValues,
                           onSubmit,
                           onCancel,
                           isSubmitting = false,
                       }) => {
-    const [form, setForm] = useState(EMPTY_FORM);
+    const [form, setForm] = useState(() => buildFormState(initialValues));
     const [errors, setErrors] = useState({});
-
-    useEffect(() => {
-        if (initialValues) {
-            setForm({
-                name: initialValues.name ?? "",
-                category: initialValues.category ?? "cocktail",
-                tier: initialValues.tier ?? "popular",
-                country: initialValues.country ?? "",
-                detail: initialValues.detail ?? "",
-                price:
-                    initialValues.price !== undefined &&
-                    initialValues.price !== null
-                        ? String(initialValues.price)
-                        : "",
-                image: initialValues.image ?? "",
-                title: initialValues.title ?? "",
-                description: initialValues.description ?? "",
-                isAvailable:
-                    initialValues.isAvailable !== undefined
-                        ? Boolean(initialValues.isAvailable)
-                        : true,
-            });
-        } else {
-            setForm(EMPTY_FORM);
-        }
-
-        setErrors({});
-    }, [initialValues]);
 
     const handleChange = (event) => {
         const { name, value, type, checked } = event.target;

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { fetchCocktailsAdmin, createCocktail, updateCocktail, deleteCocktail } from "../../services/api.js";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -83,6 +83,7 @@ const Cocktails = () => {
 
             {isFormOpen && (
                 <CocktailForm
+                    key={editingCocktail?._id ?? "new"}
                     initialValues={editingCocktail}
                     onSubmit={handleSubmit}
                     onCancel={closeForm}

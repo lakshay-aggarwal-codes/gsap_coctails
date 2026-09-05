@@ -17,7 +17,7 @@ const protectCustomer = asyncHandler(async (req, res, next) => {
         decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
         res.status(401);
-        throw new Error("Not authorized, invalid or expired token");
+        throw new Error("Not authorized, invalid or expired token", { cause: error });
     }
 
     if (decoded.role !== "customer") {

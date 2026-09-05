@@ -18,8 +18,8 @@ const optionalCustomerAuth = async (req, res, next) => {
                 req.customer = customer;
             }
         }
-    } catch (error) {
-
+    } catch {
+        // Invalid or expired token on an optional-auth route: proceed as a guest.
     }
 
     next();

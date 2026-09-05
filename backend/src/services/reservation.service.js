@@ -59,5 +59,8 @@ const reserveSlotCapacity = async ({ date, time, numberOfGuests }) => {
 const releaseSlotCapacity = async ({ date, time, numberOfGuests }) => {
     await SlotCapacity.updateOne({ date, time }, { $inc: { bookedGuests: -numberOfGuests } });
 };
+ 
+const CAPACITY_HOLDING_STATUSES = ["pending", "confirmed"];
+const holdsCapacity = (status) => CAPACITY_HOLDING_STATUSES.includes(status);
 
-export { validateTimeSlot, reserveSlotCapacity, releaseSlotCapacity };
+export { validateTimeSlot, reserveSlotCapacity, releaseSlotCapacity, holdsCapacity };

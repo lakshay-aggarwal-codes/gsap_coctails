@@ -1,13 +1,62 @@
-import React, { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchMyProfile, updateMyProfile, resendVerificationEmail } from "../../services/api.js";
 import { useCustomerAuth } from "../../context/CustomerAuthContext.jsx";
 import useCustomerAuthGuard from "../../hooks/useCustomerAuthGuard.js";
 
+const ProfileEditForm = ({ profile, onSave, isSaving, saveError, saved }) => {
+    const [name, setName] = useState(profile.name);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onSave(name);
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+                <label className="block text-sm text-white-100/60 mb-1">Name</label>
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white focus:outline-none focus:border-yellow"
+                />
+            </div>
+
+            <div>
+                <label className="block text-sm text-white-100/60 mb-1">Email</label>
+                <input
+                    type="email"
+                    value={profile.email}
+                    disabled
+                    className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white-100/50"
+                />
+            </div>
+
+            {saveError && (
+                <p role="alert" className="text-sm text-red-400">
+                    {saveError.message}
+                </p>
+            )}
+
+            <button
+                type="submit"
+                disabled={isSaving}
+                className="rounded-full bg-yellow text-black font-semibold px-6 py-3 hover:opacity-90 transition disabled:opacity-50"
+            >
+                {isSaving ? "Saving..." : "Save Changes"}
+            </button>
+
+            {saved && <span className="ml-4 text-sm text-green-400">Saved</span>}
+        </form>
+    );
+};
+
 const Profile = () => {
     const { token } = useCustomerAuth();
     const queryClient = useQueryClient();
-    const [name, setName] = useState("");
     const [saved, setSaved] = useState(false);
     const [resendSent, setResendSent] = useState(false);
 
@@ -18,14 +67,8 @@ const Profile = () => {
 
     useCustomerAuthGuard(profileQuery.error);
 
-    useEffect(() => {
-        if (profileQuery.data) {
-            setName(profileQuery.data.name);
-        }
-    }, [profileQuery.data]);
-
     const updateMutation = useMutation({
-        mutationFn: () => updateMyProfile({ token, name }),
+        mutationFn: (name) => updateMyProfile({ token, name }),
         onSuccess: (data) => {
             queryClient.setQueryData(["customer", "profile"], data);
             setSaved(true);
@@ -37,11 +80,6 @@ const Profile = () => {
         mutationFn: () => resendVerificationEmail({ token }),
         onSuccess: () => setResendSent(true),
     });
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        updateMutation.mutate();
-    };
 
     if (profileQuery.isLoading) {
         return <p className="text-white-100/60">Loading...</p>;
@@ -65,7 +103,7 @@ const Profile = () => {
         <div className="max-w-md">
             <h1 className="font-serif text-3xl mb-8">Profile</h1>
 
-            {profileQuery.data && !profileQuery.data.isEmailVerified && (
+            {!profileQuery.data.isEmailVerified && (
                 <div className="mb-6 rounded-lg border border-yellow/30 bg-yellow/10 px-4 py-3 text-sm">
                     <p className="text-yellow">Your email address isn't verified yet.</p>
                     {resendSent ? (
@@ -82,44 +120,13 @@ const Profile = () => {
                 </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label className="block text-sm text-white-100/60 mb-1">Name</label>
-                    <input
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                        className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white focus:outline-none focus:border-yellow"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm text-white-100/60 mb-1">Email</label>
-                    <input
-                        type="email"
-                        value={profileQuery.data?.email ?? ""}
-                        disabled
-                        className="w-full rounded-lg bg-white/5 border border-white/10 px-4 py-3 text-white-100/50"
-                    />
-                </div>
-
-                {updateMutation.error && (
-                    <p role="alert" className="text-sm text-red-400">
-                        {updateMutation.error.message}
-                    </p>
-                )}
-
-                <button
-                    type="submit"
-                    disabled={updateMutation.isPending}
-                    className="rounded-full bg-yellow text-black font-semibold px-6 py-3 hover:opacity-90 transition disabled:opacity-50"
-                >
-                    {updateMutation.isPending ? "Saving..." : "Save Changes"}
-                </button>
-
-                {saved && <span className="ml-4 text-sm text-green-400">Saved</span>}
-            </form>
+            <ProfileEditForm
+                profile={profileQuery.data}
+                onSave={(name) => updateMutation.mutate(name)}
+                isSaving={updateMutation.isPending}
+                saveError={updateMutation.error}
+                saved={saved}
+            />
         </div>
     );
 };

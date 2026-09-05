@@ -140,32 +140,35 @@ const resendVerification = asyncHandler(async (req, res) => {
     });
 });
 
+// Always responds with the same 200 + generic message, whether or not the
+// email belongs to an account — otherwise the response itself would let an
+// attacker enumerate which addresses have accounts. The reset email is only
+// ever sent when the account genuinely exists.
+const GENERIC_FORGOT_PASSWORD_MESSAGE = "If an account exists with that email, a password reset link has been sent.";
+
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
     const customer = await Customer.findOne({ email });
 
-    if (!customer) {
-        res.status(404);
-        throw new Error("No account found with that email address");
+    if (customer) {
+        const { rawToken, tokenHash } = createToken();
+        customer.passwordResetTokenHash = tokenHash;
+        customer.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
+        await customer.save({ validateBeforeSave: false });
+
+        const resetUrl = `${CLIENT_URL}/account/reset-password/${rawToken}`;
+
+        await sendMail({
+            to: customer.email,
+            subject: "Reset your Velvet Pour password",
+            text: `Reset your password: ${resetUrl} (expires in 1 hour). If you didn't request this, ignore this email.`,
+            html: `<p><a href="${resetUrl}">Reset your password</a> (expires in 1 hour).</p><p>If you didn't request this, ignore this email.</p>`,
+        });
     }
-
-    const { rawToken, tokenHash } = createToken();
-    customer.passwordResetTokenHash = tokenHash;
-    customer.passwordResetExpires = new Date(Date.now() + PASSWORD_RESET_TTL_MS);
-    await customer.save({ validateBeforeSave: false });
-
-    const resetUrl = `${CLIENT_URL}/account/reset-password/${rawToken}`;
-
-    await sendMail({
-        to: customer.email,
-        subject: "Reset your Velvet Pour password",
-        text: `Reset your password: ${resetUrl} (expires in 1 hour). If you didn't request this, ignore this email.`,
-        html: `<p><a href="${resetUrl}">Reset your password</a> (expires in 1 hour).</p><p>If you didn't request this, ignore this email.</p>`,
-    });
 
     res.status(200).json({
         success: true,
-        message: "Reset link sent",
+        message: GENERIC_FORGOT_PASSWORD_MESSAGE,
     });
 });
 

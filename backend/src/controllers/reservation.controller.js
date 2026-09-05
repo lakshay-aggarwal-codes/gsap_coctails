@@ -1,14 +1,25 @@
 import Reservation from "../models/Reservation.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import {buildPaginationMeta} from "../utils/pagination.js";
-import {validateTimeSlot, reserveSlotCapacity, releaseSlotCapacity} from "../services/reservation.service.js";
+import {validateTimeSlot, reserveSlotCapacity, releaseSlotCapacity, holdsCapacity} from "../services/reservation.service.js";
 import sendMail from "../utils/mailer.js";
+import AppError from "../utils/AppError.js";
 
 const STATUS_LABELS = {
     confirmed: "confirmed",
     cancelled: "cancelled",
     pending: "set back to pending",
     waitlisted: "added to the waitlist",
+};
+
+
+const sendReservationReceivedEmail = async (reservation) => {
+    await sendMail({
+        to: reservation.email,
+        subject: "We've received your Velvet Pour reservation request",
+        text: `Hi ${reservation.name}, we've received your request for ${reservation.numberOfGuests} guest(s) on ${reservation.date} at ${reservation.time}. It's pending confirmation and we'll be in touch shortly.`,
+        html: `<p>Hi ${reservation.name},</p><p>We've received your request for ${reservation.numberOfGuests} guest(s) on ${reservation.date} at ${reservation.time}. It's <strong>pending confirmation</strong> and we'll be in touch shortly.</p>`,
+    });
 };
 
 const sendReservationStatusEmail = async (reservation) => {
@@ -45,16 +56,18 @@ const createReservation = asyncHandler(async (req, res) => {
     validateTimeSlot(time);
 
     const reserved = await reserveSlotCapacity({ date, time, numberOfGuests });
-    const status = reserved ? "confirmed" : "waitlisted";
+    if (!reserved) {
+        throw new AppError("That time slot is fully booked. Please choose a different time or contact us directly.", 409);
+    }
 
     const reservation = await Reservation.create({
         ...req.body,
-        status,
+        status: "pending",
         customer: req.customer?._id ?? null,
     });
 
-    sendReservationStatusEmail(reservation).catch((err) => {
-        console.error("Failed to send reservation status email:", err.message);
+    sendReservationReceivedEmail(reservation).catch((err) => {
+        console.error("Failed to send reservation received email:", err.message);
     });
 
     res.status(201).json({
@@ -123,8 +136,8 @@ const updateReservation = asyncHandler(async (req, res) => {
     const statusChanged = requestedStatus !== undefined && requestedStatus !== existing.status;
     const finalStatus = requestedStatus ?? existing.status;
 
-    const wasHoldingCapacity = existing.status === "confirmed";
-    const willHoldCapacity = finalStatus === "confirmed";
+    const wasHoldingCapacity = holdsCapacity(existing.status);
+    const willHoldCapacity = holdsCapacity(finalStatus);
 
     if (isRebooking && wasHoldingCapacity) {
         await releaseSlotCapacity({ date: existing.date, time: existing.time, numberOfGuests: existing.numberOfGuests });
@@ -193,7 +206,7 @@ const cancelMyReservation = asyncHandler(async (req, res) => {
         return;
     }
 
-    const wasHoldingCapacity = reservation.status === "confirmed";
+    const wasHoldingCapacity = holdsCapacity(reservation.status);
 
     reservation.status = "cancelled";
     await reservation.save();
@@ -242,7 +255,7 @@ const deleteReservation = asyncHandler(async (req, res) => {
         throw new Error("Reservation not found");
     }
 
-    if (reservation.status === "confirmed") {
+    if (holdsCapacity(reservation.status)) {
         await releaseSlotCapacity({ date: reservation.date, time: reservation.time, numberOfGuests: reservation.numberOfGuests });
         promoteWaitlist({ date: reservation.date, time: reservation.time }).catch((err) => {
             console.error("Waitlist promotion failed:", err.message);

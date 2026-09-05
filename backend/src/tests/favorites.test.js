@@ -2,7 +2,6 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import request from "supertest";
 import app from "../app.js";
 import Cocktail from "../models/Cocktail.js";
-import Customer from "../models/Customer.js";
 import Favorite from "../models/Favorite.js";
 import Admin from "../models/Admin.js";
 import { connectTestDB, closeTestDB } from "./setup.js";

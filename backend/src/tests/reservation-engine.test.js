@@ -24,6 +24,20 @@ const validReservation = (overrides = {}) => ({
     ...overrides,
 });
 
+const fillSlotToCapacity = async (date, time) => {
+    const responses = [];
+    let remaining = RESERVATION_RULES.MAX_GUESTS_PER_SLOT;
+
+    while (remaining > 0) {
+        const numberOfGuests = Math.min(remaining, RESERVATION_RULES.MAX_PARTY_SIZE);
+        const res = await request(app).post("/api/reservations").send(validReservation({ date, time, numberOfGuests }));
+        responses.push(res);
+        remaining -= numberOfGuests;
+    }
+
+    return responses;
+};
+
 let token;
 
 beforeAll(async () => {
@@ -74,17 +88,13 @@ describe("Reservation creation — capacity/conflict detection", () => {
     it("fills a slot exactly to capacity across multiple bookings, then rejects the next one", async () => {
         const date = futureDate(31);
         const time = "19:00";
-        const full = RESERVATION_RULES.MAX_GUESTS_PER_SLOT;
 
-        const first = await request(app).post("/api/reservations").send(validReservation({ date, time, numberOfGuests: full - 2 }));
-        expect(first.status).toBe(201);
+        const fillResponses = await fillSlotToCapacity(date, time);
+        fillResponses.forEach((res) => expect(res.status).toBe(201));
 
-        const second = await request(app).post("/api/reservations").send(validReservation({ date, time, numberOfGuests: 2 }));
-        expect(second.status).toBe(201);
-
-        const third = await request(app).post("/api/reservations").send(validReservation({ date, time, numberOfGuests: 1 }));
-        expect(third.status).toBe(409);
-        expect(third.body.message).toMatch(/fully booked/i);
+        const overflow = await request(app).post("/api/reservations").send(validReservation({ date, time, numberOfGuests: 1 }));
+        expect(overflow.status).toBe(409);
+        expect(overflow.body.message).toMatch(/fully booked/i);
     });
 
     it("does not count a cancelled reservation toward capacity", async () => {
@@ -97,14 +107,17 @@ describe("Reservation creation — capacity/conflict detection", () => {
         });
         expect(cancelled.status).toBe("cancelled");
 
-        const res = await request(app).post("/api/reservations").send(validReservation({ date, time, numberOfGuests: RESERVATION_RULES.MAX_GUESTS_PER_SLOT }));
-        expect(res.status).toBe(201);
+        const fillResponses = await fillSlotToCapacity(date, time);
+        fillResponses.forEach((res) => expect(res.status).toBe(201));
     });
 
     it("a different time slot on the same date is unaffected by a full slot", async () => {
         const date = futureDate(33);
-        await request(app).post("/api/reservations").send(validReservation({ date, time: "18:00", numberOfGuests: RESERVATION_RULES.MAX_GUESTS_PER_SLOT }));
-        const res = await request(app).post("/api/reservations").send(validReservation({ date, time: "18:30", numberOfGuests: RESERVATION_RULES.MAX_GUESTS_PER_SLOT }));
+        await fillSlotToCapacity(date, "18:00");
+
+        const res = await request(app)
+            .post("/api/reservations")
+            .send(validReservation({ date, time: "18:30", numberOfGuests: RESERVATION_RULES.MAX_PARTY_SIZE }));
         expect(res.status).toBe(201);
     });
 });
@@ -113,21 +126,23 @@ describe("Reservation update (PUT) — re-validation on rebooking", () => {
     it("excludes the reservation being edited from its own capacity check", async () => {
         const date = futureDate(34);
         const time = "21:00";
-        const createRes = await request(app).post("/api/reservations").send(validReservation({ date, time, numberOfGuests: RESERVATION_RULES.MAX_GUESTS_PER_SLOT }));
-        const id = createRes.body.data._id;
+        const fillResponses = await fillSlotToCapacity(date, time);
+        const last = fillResponses[fillResponses.length - 1];
+        const id = last.body.data._id;
+        const reducedGuests = last.body.data.numberOfGuests - 1;
 
         const updateRes = await request(app)
             .put(`/api/reservations/${id}`)
             .set("Authorization", `Bearer ${token}`)
-            .send({ numberOfGuests: RESERVATION_RULES.MAX_GUESTS_PER_SLOT - 5 });
+            .send({ numberOfGuests: reducedGuests });
 
         expect(updateRes.status).toBe(200);
-        expect(updateRes.body.data.numberOfGuests).toBe(RESERVATION_RULES.MAX_GUESTS_PER_SLOT - 5);
+        expect(updateRes.body.data.numberOfGuests).toBe(reducedGuests);
     });
 
     it("rejects rebooking into a slot that is genuinely full elsewhere", async () => {
         const date = futureDate(35);
-        await request(app).post("/api/reservations").send(validReservation({ date, time: "18:00", numberOfGuests: RESERVATION_RULES.MAX_GUESTS_PER_SLOT }));
+        await fillSlotToCapacity(date, "18:00");
         const otherRes = await request(app).post("/api/reservations").send(validReservation({ date, time: "19:00", numberOfGuests: 2 }));
         const otherId = otherRes.body.data._id;
 
@@ -203,7 +218,7 @@ describe("customer linking via optionalCustomerAuth", () => {
             .set("Authorization", `Bearer ${customerToken}`)
             .send(validReservation({ date: futureDate(43) }));
 
-          await request(app).post("/api/reservations").send(validReservation({ date: futureDate(44) }));
+        await request(app).post("/api/reservations").send(validReservation({ date: futureDate(44) }));
 
         const res = await request(app).get("/api/reservations/mine").set("Authorization", `Bearer ${customerToken}`);
 
